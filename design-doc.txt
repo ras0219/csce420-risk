@@ -1,0 +1,18 @@
+Risky Business
+--------------
+
+Rough structure of the framework:
+
+ * Simulation class manages the list of agents, game graph, and dispatches 
+   calls to the math model as needed to resolve moves.
+
+ * MathModel class implements all maths required for the game; this should
+   encapsulate all methods that would be rewritten to modify the level of 
+   implemented chance.
+
+ * Agent class is a superclass for agents to follow from.
+
+Data structures:
+
+  data Country = String
+  data Edgelist = { Country : [Country] }
