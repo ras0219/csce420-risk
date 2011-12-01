@@ -56,18 +56,65 @@ class Simulation:
 
         # Begin game
         for aid in self.agents:
-            for mv in generate(aid.attack):
-                if mv[0] not in owns[aid]:
-                    raise RiskError(aid, "Unowned Source Country "+repr(mv[0]))
-                if mv[1] in owns[aid]:
-                    raise RiskError(aid, "Owned Dest Country "+repr(mv[1]))
-                if mv[2]+1 > armies[mv[0]]:
-                    raise RiskError(aid, "Too many Armies")
-                if mv[2] < 1:
-                    raise RiskError(aid, "Not Enough Armies")
+            self.process_attacks(aid)
+            self.process_transfers(aid)
 
-                self.model.perform_combat_round(
-    # eval_turn :: Agent -> IO ()
+    # process_transfers :: AgentID -> IO ()
+    def process_attacks(self, aid):
+        for mv in generate(aid.attack):
+            if mv[0] not in owns[aid]:
+                raise RiskError(aid, "Unowned Source Country: "+repr(mv))
+            if mv[1] in owns[aid]:
+                raise RiskError(aid, "Owned Dest Country: "+repr(mv))
+            if mv[2]+1 > armies[mv[0]]:
+                raise RiskError(aid, "Too Many Armies: "+repr(mv))
+            if mv[2] < 1:
+                raise RiskError(aid, "Not Enough Armies: "+repr(mv))
+            if mv[1] not in self.edgelist[mv[0]]:
+                raise RiskError(aid, "Territories Not Adjacent: "+repr(mv))
+            L1, L2 = self.model.perform_combat(mv[2],
+                                               armies[mv[1]],
+                                               random.random())
+            armies[mv[0]] -= mv[2]
+            rem = mv[2] - L1
+            armies[mv[2]] -= L2
+            if rem > 0:
+                # The attacker won
+                transfer_ownership(mv[1], aid)
+                armies[mv[1]] = rem
+
+    # process_transfers :: AgentID -> IO ()
+    def process_transfers(self, aid):
+        activated = []
+        for mv in generate(aid.transfer):
+            if mv[0] not in owns[aid]:
+                raise RiskError(aid, "Unowned Source Country: "+repr(mv))
+            if mv[1] not in owns[aid]:
+                raise RiskError(aid, "Unowned Dest Country: "+repr(mv))
+            if mv[2]+1 > armies[mv[0]]:
+                raise RiskError(aid, "Too Many Armies: "+repr(mv))
+            if mv[2] < 1:
+                raise RiskError(aid, "Not Enough Armies: "+repr(mv))
+            if mv[1] not in self.edgelist[mv[0]]:
+                raise RiskError(aid, "Territories Not Adjacent: "+repr(mv))
+            if mv[0] in activated:
+                raise RiskError(aid,
+                                "Cannot Move Into Activated Country: " +
+                                repr(mv))
+            armies[mv[0]] -= mv[2]
+            armies[mv[1]] += mv[2]
+            if mv[1] not in activated:
+                activated.append(mv[1])
+
+    # transfer_ownership :: String -> AgentID -> IO ()
+    def transfer_ownership(self, land, agent):
+        # Update all data structures needed to reflect change in ownership
+        old = self.countries[land]
+        self.owns[old].remove(land)
+        self.owns[agent].append(land)
+        self.countries[land] = agent
+
+    # eval_turn :: (Simulation -> Move) -> Iterator Move
     def generate(self, agent_func):
         while True:
             mv = agent_func(self)

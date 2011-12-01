@@ -5,6 +5,11 @@ class Agent:
 
     # pregame_place :: Integer -> Simulation -> { String : Integer }
     def pregame_place(self, numarmies, sim):
+        # Note on output format:
+        #   output should be a dictionary of countries to number of
+        #   armies to place in said country
+        #
+        # IT IS LEGAL TO PLACE LESS THAN YOUR NUMBER OF ARMIES
         return {}
 
     # attack :: Simulation -> Maybe (String, String, Integer)
