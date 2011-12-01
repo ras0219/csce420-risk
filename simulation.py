@@ -61,7 +61,7 @@ class Simulation:
 
     # process_transfers :: AgentID -> IO ()
     def process_attacks(self, aid):
-        for mv in generate(aid.attack):
+        for mv in generate(self.agents[aid].attack):
             if mv[0] not in owns[aid]:
                 raise RiskError(aid, "Unowned Source Country: "+repr(mv))
             if mv[1] in owns[aid]:
@@ -86,7 +86,7 @@ class Simulation:
     # process_transfers :: AgentID -> IO ()
     def process_transfers(self, aid):
         activated = []
-        for mv in generate(aid.transfer):
+        for mv in generate(self.agents[aid].transfer):
             if mv[0] not in owns[aid]:
                 raise RiskError(aid, "Unowned Source Country: "+repr(mv))
             if mv[1] not in owns[aid]:
