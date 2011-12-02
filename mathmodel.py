@@ -4,6 +4,8 @@
 # and separate them from the core framework.  This is in pursuit of
 # easy modification of core game rules (such as combat statistics)
 
+import random
+
 class MathModel:
     def __init__(self):
         self.pregame_armies = 10
@@ -21,36 +23,61 @@ class MathModel:
             num = 3
         return num
 
-    # perform_combat :: Integer -> Integer -> Double -> (Integer, Integer)
-    def perform_combat(self, army1, army2, rnd):
-        # Inputs:
-        #   army1 - size of player 1's army (Offense)
-        #   army2 - size of player 2's army (Defense)
-        #   rnd - randomness value
-        # Outputs:
-        #   L1 - L1 is losses to player 1
-        #   L2 - L2 is losses to player 2
-        #
-        # TODO: Implement chance
-        # Important note! It is ILLEGAL to return (army1,army2)
-        #   unless both arguments were 0!
-        #
-        # Another important note:
-        #   The passed in randomness value has limited amounts of randomness.
-        #   This means that many combat outcomes are "inaccessible"
-        #   To minimize this effect, and maximize AI compatibility, the combat
-        #   function should be monotonically increasing with rnd.
-        #
-        #   This means that rnd=0 -> Offense wins, rnd=1.0 -> Defense wins!
-        #   On the downside, this means extrapolating to additional bits of
-        #   entropy is nontrivial.
-        #
-        #   Future modification may be required (pass in an integer with a
-        #   set number of bits?)
+    # round_cdf :: Integer -> Integer -> {(Integer, Integer):Double}
+    def round_cdf(self, army1, army2):
+        if army1 <= 0 or army2 <= 0:
+            return {(0,0):1.00}
+        if army1 == 1 and army2 == 1:
+            return {(0,-1):0.4167,
+                    (-1,0):0.5833}
+        if army1 == 1 and army2 > 1:
+            return {(0,-1):0.2546,
+                    (-1,0):0.7454}
+        if army1 == 2 and army2 == 1:
+            return {(0,-1):0.5787,
+                    (-1,0):0.4213}
+        if army1 == 2 and army2 > 1:
+            return {(0,-2):0.2276,
+                    (-1,-1):0.3241,
+                    (-2,0):0.4483}
+        if army1 > 2 and army2 == 1:
+            return {(0,-1):0.6597,
+                    (-1,0):0.3403}
+        return {(0,-2):0.3716,
+                (-1,-1):0.3358,
+                (-2,0):0.2926}
 
-        if army1 == army2 and army1 == 0:
-            return (0,0)
-        loss = min([army1, army2])
-        if army1 == army2:
-            return (loss, loss-1)
-        return (loss, loss)
+    # full_cdf :: Integer -> Integer -> {(Integer, Integer):Double}
+    def full_cdf(self, army1, army2):
+        rounds = min((army1+1, army2+1))/2 + max((army1,army2))
+        p = self.round_cdf(0,0)
+
+        for r in range(rounds):
+            p_new = {}
+            for k,v in p.items():
+                patch = self.round_cdf(army1+k[0],army2+k[1])
+                for k2,v2 in patch.items():
+                    nk = (k[0]+k2[0], k[1]+k2[1])
+                    if v > 0 and v2 > 0:
+                        p_new[nk] = p_new.get(nk, 0.00) + v*v2
+            p = p_new
+        return p
+
+    # perform_combat_round :: Integer -> Integer -> (Integer, Integer)
+    def perform_combat(self, army1, army2):
+        r = random.random()
+        cdf = self.round_cdf(army1, army2)
+        for k,v in cdf.values():
+            if v >= r:
+                return k
+            r -= v
+        # The following should NEVER happen...
+        return (0,0)
+
+
+# integral2d :: {(Integer, Integer):Double} -> ((Integer, Integer) -> Double) -> Double
+def integral2d(patch, util_func):
+    acc = 0.0
+    for k in patch:
+        acc += patch[k] * util_func(k)
+    return acc
