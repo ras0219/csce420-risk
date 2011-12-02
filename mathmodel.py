@@ -63,7 +63,7 @@ class MathModel:
             p = p_new
         return p
 
-    # perform_combat_round :: Integer -> Integer -> (Integer, Integer)
+    # perform_combat :: Integer -> Integer -> (Integer, Integer)
     def perform_combat(self, army1, army2):
         r = random.random()
         cdf = self.round_cdf(army1, army2)
