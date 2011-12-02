@@ -2,25 +2,19 @@ import riskerror
 import random
 
 class Simulation:
-    PHASE_PREGAME = 0
-    PHASE_PLACE = 2
-    PHASE_ATTACK = 3
-    PHASE_TRANSFER = 4
-
     # data Simulation = Simulation Edgelist MathModel
     def __init__(self, elist, mmodel):
         self.edgelist = elist
         self.model = mmodel
         self.agent_id = 0
-        self.phase = PHASE_PREGAME
         self.agents = {}
 
     # add_agent :: Agent -> IO ()
     def add_agent(self, agent):
-        agent.set_id(agent_id)
-        self.agents[agent_id] = agent
+        agent.set_id(self.agent_id)
+        self.agents[self.agent_id] = agent
         # Maybe change this to have agents be colors?
-        agent_id += 1
+        self.agent_id += 1
 
     # start :: IO ()
     def start(self):
@@ -40,71 +34,105 @@ class Simulation:
             self.countries[clist[c]] = aid
             self.armies[clist[c]] = 1
 
-            numarmies = self.model.pregame_armies
-            for aid in self.agents:
-                places = self.agents[aid].pregame_place(numarmies, self)
-                if sum(places.values()) > numarmies:
-                    raise RiskError(aid, "Too many pregame armies")
-                for p in places:
-                    if p not in countries:
-                        raise RiskError(aid, "Invalid Country "+repr(p))
-                    if not countries[p] == aid:
-                        raise RiskError(aid, "Unowned Country "+repr(p))
-                    if places[p] < 0:
-                        raise RiskError(aid, "Negative Armies")
-                    self.armies[p] += places[p]
-
-        # Begin game
+        print "Countries"
+        print self.countries
+        print "Owns"
+        print self.owns
+        print "Armies"
+        print self.armies
+        
+        numarmies = self.model.pregame_armies
         for aid in self.agents:
-            self.process_attacks(aid)
-            self.process_transfers(aid)
+            places = self.agents[aid].pregame_place(numarmies, self)
+            self.process_placements(aid, numarmies, places)
+
+        while not self.is_ended():
+            # Begin game
+            for aid in self.agents:
+                if len(self.owns[aid]) == 0:
+                    continue
+                numarmies = self.model.num_armies(self.owns[aid])
+                places = self.agents[aid].pregame_place(numarmies, self)
+                self.process_placements(aid, numarmies, places)
+                self.process_attacks(aid)
+                self.process_transfers(aid)
+
+            print self.owns
+            print self.armies
+            # Done with round
+
+    def process_placements(self, aid, numarmies, places):
+        if sum(places.values()) > numarmies:
+            raise RiskError(aid, "Too many pregame self.armies")
+        for p in places:
+            if p not in self.countries:
+                raise RiskError(aid, "Invalid Country "+repr(p))
+            if not self.countries[p] == aid:
+                raise RiskError(aid, "Unowned Country "+repr(p))
+            if places[p] < 0:
+                raise RiskError(aid, "Negative self.armies")
+            self.armies[p] += places[p]
+        print "Agent "+str(aid)+" places self.armies:"
+        print places
+        print ""
+        
 
     # process_transfers :: AgentID -> IO ()
     def process_attacks(self, aid):
-        for mv in generate(self.agents[aid].attack):
-            if mv[0] not in owns[aid]:
+        for mv in self.generate(self.agents[aid].attack):
+            if mv[0] not in self.owns[aid]:
                 raise RiskError(aid, "Unowned Source Country: "+repr(mv))
-            if mv[1] in owns[aid]:
+            if mv[1] in self.owns[aid]:
                 raise RiskError(aid, "Owned Dest Country: "+repr(mv))
-            if mv[2]+1 > armies[mv[0]]:
-                raise RiskError(aid, "Too Many Armies: "+repr(mv))
+            if mv[2]+1 > self.armies[mv[0]]:
+                raise RiskError(aid, "Too Many self.armies: "+repr(mv))
             if mv[2] < 1:
-                raise RiskError(aid, "Not Enough Armies: "+repr(mv))
+                raise RiskError(aid, "Not Enough self.armies: "+repr(mv))
             if mv[1] not in self.edgelist[mv[0]]:
                 raise RiskError(aid, "Territories Not Adjacent: "+repr(mv))
-            L1, L2 = self.model.perform_combat(mv[2],
-                                               armies[mv[1]],
-                                               random.random())
-            armies[mv[0]] -= mv[2]
-            rem = mv[2] - L1
-            armies[mv[2]] -= L2
-            if rem > 0:
+
+            army1 = mv[2]
+            army2 = self.armies[mv[1]]
+            L1, L2 = self.model.perform_combat(army1, army2)
+            self.armies[mv[1]] += L2
+            if self.armies[mv[1]] > 0:
+                self.armies[mv[0]] += L1
+            else:
                 # The attacker won
-                transfer_ownership(mv[1], aid)
-                armies[mv[1]] = rem
+                self.transfer_ownership(mv[1], aid)
+                self.armies[mv[0]] -= mv[2]
+                self.armies[mv[1]] = mv[2] + L1
+            print "Agent "+str(aid)+" attacks:"
+            print mv
+            print "Results: %4s  vs %4s" % (army1,army2)
+            print "         %4s  vs %4s" % (L1, L2)
+            print ""
 
     # process_transfers :: AgentID -> IO ()
     def process_transfers(self, aid):
         activated = []
-        for mv in generate(self.agents[aid].transfer):
-            if mv[0] not in owns[aid]:
+        for mv in self.generate(self.agents[aid].transfer):
+            if mv[0] not in self.owns[aid]:
                 raise RiskError(aid, "Unowned Source Country: "+repr(mv))
-            if mv[1] not in owns[aid]:
+            if mv[1] not in self.owns[aid]:
                 raise RiskError(aid, "Unowned Dest Country: "+repr(mv))
-            if mv[2]+1 > armies[mv[0]]:
-                raise RiskError(aid, "Too Many Armies: "+repr(mv))
+            if mv[2]+1 > self.armies[mv[0]]:
+                raise RiskError(aid, "Too Many self.armies: "+repr(mv))
             if mv[2] < 1:
-                raise RiskError(aid, "Not Enough Armies: "+repr(mv))
+                raise RiskError(aid, "Not Enough self.armies: "+repr(mv))
             if mv[1] not in self.edgelist[mv[0]]:
                 raise RiskError(aid, "Territories Not Adjacent: "+repr(mv))
             if mv[0] in activated:
                 raise RiskError(aid,
                                 "Cannot Move Into Activated Country: " +
                                 repr(mv))
-            armies[mv[0]] -= mv[2]
-            armies[mv[1]] += mv[2]
+            self.armies[mv[0]] -= mv[2]
+            self.armies[mv[1]] += mv[2]
             if mv[1] not in activated:
                 activated.append(mv[1])
+            print "Agent "+str(aid)+" transfers:"
+            print mv
+            print ""
 
     # transfer_ownership :: String -> AgentID -> IO ()
     def transfer_ownership(self, land, agent):
@@ -124,5 +152,9 @@ class Simulation:
 
     # is_ended :: Bool
     def is_ended(self):
+        rem_players = 0
         # check win condition here
-        return False
+        for k,v in self.owns.items():
+            if len(v) > 0:
+                rem_players += 1
+        return rem_players <= 1

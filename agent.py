@@ -19,3 +19,8 @@ class Agent:
     # transfer :: Simulation -> Maybe (String, String, Integer)
     def transfer(self, sim):
         return None
+
+    # place_armies :: Integer -> Simulation -> { String : Integer }
+    def place_armies(self, numarmies, sim):
+        # See pregame_place for notes
+        return {}

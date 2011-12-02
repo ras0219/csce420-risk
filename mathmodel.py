@@ -67,7 +67,7 @@ class MathModel:
     def perform_combat(self, army1, army2):
         r = random.random()
         cdf = self.round_cdf(army1, army2)
-        for k,v in cdf.values():
+        for k,v in cdf.items():
             if v >= r:
                 return k
             r -= v
