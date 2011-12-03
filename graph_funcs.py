@@ -25,9 +25,18 @@ def regions(countries, elist):
         rem.append(r)
     return rem
 
+# border :: [String] -> {String:[String]} -> [String]
+def border(countries, elist):
+    b = set()
+    for c in countries:
+        for e in elist[c]:
+            b.add(e)
+    return list(b - set(countries))
 
 
 if __name__ == '__main__':
     elist = {0:[1,2,3,4,5],1:[0,2],2:[0,1,3,4],3:[0,2],4:[0,2,5],5:[0,4,6],6:[5]}
     countries = [1,2,3,5,6]
     print regions(countries, elist)
+
+    print border(countries, elist)
