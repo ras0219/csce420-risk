@@ -1,5 +1,6 @@
 import itertools
 
+# regions :: [String] -> {String:[String]} -> [[String]]
 def regions(countries, elist):
     regs = map(lambda x: [x], countries)
     rem = []
@@ -23,6 +24,7 @@ def regions(countries, elist):
             regs = endregs
         rem.append(r)
     return rem
+
 
 
 if __name__ == '__main__':
