@@ -34,12 +34,12 @@ class Simulation:
             self.countries[clist[c]] = aid
             self.armies[clist[c]] = 1
 
-        print "Countries"
-        print self.countries
-        print "Owns"
-        print self.owns
-        print "Armies"
-        print self.armies
+#        print "Countries"
+#        print self.countries
+#        print "Owns"
+#        print self.owns
+#        print "Armies"
+#        print self.armies
         
         numarmies = self.model.pregame_armies
         for aid in self.agents:
@@ -57,8 +57,8 @@ class Simulation:
                 self.process_attacks(aid)
                 self.process_transfers(aid)
 
-            print self.owns
-            print self.armies
+#            print self.owns
+#            print self.armies
             # Done with round
 
     def process_placements(self, aid, numarmies, places):
@@ -72,9 +72,9 @@ class Simulation:
             if places[p] < 0:
                 raise RiskError(aid, "Negative self.armies")
             self.armies[p] += places[p]
-        print "Agent "+str(aid)+" places self.armies:"
-        print places
-        print ""
+#        print "Agent "+str(aid)+" places self.armies:"
+#        print places
+#        print ""
         
 
     # process_transfers :: AgentID -> IO ()
@@ -102,11 +102,11 @@ class Simulation:
                 self.transfer_ownership(mv[1], aid)
                 self.armies[mv[0]] -= mv[2]
                 self.armies[mv[1]] = mv[2] + L1
-            print "Agent "+str(aid)+" attacks:"
-            print mv
-            print "Results: %4s  vs %4s" % (army1,army2)
-            print "         %4s  vs %4s" % (L1, L2)
-            print ""
+#            print "Agent "+str(aid)+" attacks:"
+#            print mv
+#            print "Results: %4s  vs %4s" % (army1,army2)
+#            print "         %4s  vs %4s" % (L1, L2)
+#            print ""
 
     # process_transfers :: AgentID -> IO ()
     def process_transfers(self, aid):
@@ -130,9 +130,9 @@ class Simulation:
             self.armies[mv[1]] += mv[2]
             if mv[1] not in activated:
                 activated.append(mv[1])
-            print "Agent "+str(aid)+" transfers:"
-            print mv
-            print ""
+#            print "Agent "+str(aid)+" transfers:"
+#            print mv
+#            print ""
 
     # transfer_ownership :: String -> AgentID -> IO ()
     def transfer_ownership(self, land, agent):
@@ -158,3 +158,9 @@ class Simulation:
             if len(v) > 0:
                 rem_players += 1
         return rem_players <= 1
+
+    def winner(self):
+        for k,v in self.owns.items():
+            if len(v) > 0:
+                return k
+        return None
