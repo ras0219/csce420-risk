@@ -70,9 +70,9 @@ class Simulation:
                 for agent in self.agents:
                     print "----%s" % agent
                     print [(c, self.armies[c]) for c in self.owns[agent]]
-                print "Armies: %d" % sum(
-                    map(lambda c: self.armies[c], self.owns[agent]))
-                print "Territories: %d" % len(self.owns[agent])
+                    print "Armies: %d" % sum(
+                        map(lambda c: self.armies[c], self.owns[agent]))
+                    print "Territories: %d" % len(self.owns[agent])
                 print "------------"
             # Done with round
 
