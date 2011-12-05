@@ -2,6 +2,7 @@ import simulation
 import mathmodel
 import riskboard
 import test_agent
+import red_agent
 
 def main():
     model = mathmodel.MathModel()
