@@ -1,13 +1,31 @@
-import riskerror
 import random
+import os
+import os.path
+
+import riskerror
 
 class Simulation:
-    # data Simulation = Simulation Edgelist MathModel
-    def __init__(self, elist, mmodel):
-        self.edgelist = elist
-        self.model = mmodel
-        self.agent_id = 0
-        self.agents = {}
+    # data Simulation = Simulation Edgelist SubMathModel
+    def __init__(self, elist, sglist, mmodel):
+        self.edgelist     = elist
+        self.subgraphlist = sglist
+        self.model        = mmodel
+        self.agent_id     = 0
+        self.agents       = {}
+        self.logdir       = None
+
+    def set_logging(in_logging_directory):
+        self.logdir = in_logging_directory
+        if not os.path.exists(logdir):
+            os.mkdirs(logdir)
+
+    def log_image(image_number):
+        if self.logdir == None:
+            return
+        logname = "{:08d}".format(image_number) 
+        logfile = os.path.join(self.logdir, logname)
+
+        
 
     # add_agent :: Agent -> IO ()
     def add_agent(self, agent):
@@ -56,6 +74,7 @@ class Simulation:
                 self.process_placements(aid, numarmies, places)
                 self.process_attacks(aid)
                 self.process_transfers(aid)
+                
 
 #            print self.owns
 #            print self.armies

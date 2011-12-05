@@ -6,9 +6,10 @@ import test_agent
 def main():
     model = mathmodel.MathModel()
     elist = riskboard.territory_adjacency
+    sglist = riskboard.region_memberships
     winners = {}
     for n in range(100):
-        sim = simulation.Simulation(elist, model)
+        sim = simulation.Simulation(elist, sglist, model)
         sim.add_agent(test_agent.TestAgent())
         sim.add_agent(test_agent.TestAgent())
         sim.add_agent(test_agent.TestAgent())
