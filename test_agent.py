@@ -36,7 +36,7 @@ class TestAgent(agent.Agent):
         return None
 
     def place_armies(self, numarmies, sim):
-        pregame_place(numarmies, sim)
+        return pregame_place(numarmies, sim)
 
     def army_size(self,c):
         return self.sim.armies[c]
