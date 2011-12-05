@@ -4,13 +4,13 @@ import mathmodel
 
 class TestAgent(agent.Agent):
     def pregame_place(self, numarmies, sim):
-        c = random.choice(sim.owns[self.aid])
+        c = random.choice(sim.owns[self])
         return {c:numarmies}
 
     def attack(self, sim):
         self.sim = sim
         # find territory we own with most units
-        owned = sim.owns[self.aid]
+        owned = sim.owns[self]
         if len(owned) == 0:
             # Uh... we don't own anything...
             return None
@@ -21,7 +21,7 @@ class TestAgent(agent.Agent):
             if self.army_size(src) < 2:
                 break
             neighbors = sim.edgelist[src]
-            neighbors = filter(lambda c: sim.countries[c] != self.aid, neighbors)
+            neighbors = filter(lambda c: sim.countries[c] != self, neighbors)
             neighbors = sorted(neighbors, key=self.army_size)
             if len(neighbors) == 0:
                 continue
@@ -30,7 +30,7 @@ class TestAgent(agent.Agent):
             army1 = self.army_size(src) - 1
 
             patch = sim.model.full_cdf(army1, army2)
-            chancetowin = mathmodel.integral2d(patch, lambda k: k[0]+army1 > 0)
+            chancetowin = mathmodel.integral2d(patch, lambda a1,a2: a1 > 0)
             if chancetowin > 0.7:
                 return (src, dst, army1)
         return None

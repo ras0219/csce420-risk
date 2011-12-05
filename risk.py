@@ -15,8 +15,8 @@ def main():
         sim.add_agent(test_agent.TestAgent())
         sim.start()
         winner = sim.winner()
-        print "Winner is %d" % winner
-        winners[winner] = winners.get(winner, 0) + 1
+        print "Winner is %s" % winner
+        winners[str(winner)] = winners.get(str(winner), 0) + 1
     print winners
         
 
