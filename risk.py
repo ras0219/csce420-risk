@@ -2,6 +2,7 @@ import simulation
 import mathmodel
 import riskboard
 import test_agent
+import red_agent
 
 def main():
     model = mathmodel.MathModel()
@@ -20,7 +21,7 @@ def main():
         winner = sim.winner()
         print "%3d) Winner is %s" % (n, winner)
         winners[str(winner)] = winners.get(str(winner), 0) + 1
-    print winners
+        print winners
         
 
 if __name__ == '__main__':
