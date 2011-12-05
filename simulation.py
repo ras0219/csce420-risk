@@ -68,7 +68,7 @@ class Simulation:
             if self.debug:
                 print "------------"
                 for agent in self.agents:
-                    print "----%" % agent
+                    print "----%s" % agent
                     print [(c, self.armies[c]) for c in self.owns[agent]]
                 print "Armies: %d" % sum(
                     map(lambda c: self.armies[c], self.owns[agent]))
