@@ -3,8 +3,21 @@ import random
 import mathmodel
 
 class TestAgent(agent.Agent):
+    def __init__(self, level=0):
+        self.level = level
+
     def pregame_place(self, numarmies, sim):
-        c = random.choice(sim.owns[self])
+        if self.level == 0:
+            c = random.choice(sim.owns[self])
+            return {c:numarmies}
+        locs = sim.owns[self]
+        adj_to_enemy = lambda c: len(filter(
+                lambda k: sim.countries[k] != self,
+                sim.edgelist[c]
+                )
+            ) > 0
+        locs = filter(adj_to_enemy, locs)
+        c = random.choice(locs)
         return {c:numarmies}
 
     def attack(self, sim):
