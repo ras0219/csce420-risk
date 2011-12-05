@@ -24,10 +24,18 @@ class MathModel:
         return num
 
     # round_cdf :: Integer -> Integer -> {(Integer, Integer):Double}
+    # army1 is the attacker, army2 is the defender
+    # returns the dictionary:
+    # {(army1change, army2change):<probability of that outcome>
     def round_cdf(self, army1, army2):
-        if army1 <= 0 or army2 <= 0:
+
+        # If the attacker has less than 2 armies or the defender has less than
+        # 1 army, then return a convolution patch that has no effect
+        if army1 < 2 or army2 < 1:
             return {(0,0):1.00}
-        if army1 == 1 and army2 == 1:
+
+        # 
+        if army1 == 2 and army2 == 1:
             return {(0,-1):0.4167,
                     (-1,0):0.5833}
         if army1 == 1 and army2 > 1:
