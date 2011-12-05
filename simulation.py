@@ -126,7 +126,7 @@ class Simulation:
 
     # process_transfers :: Agent -> IO ()
     def process_transfers(self, a):
-        activated = []
+        activated = set()
         for mv in self.generate(a.transfer):
             if mv[0] not in self.owns[a]:
                 raise RiskError(a, "Unowned Source Country: "+repr(mv))
@@ -140,12 +140,11 @@ class Simulation:
                 raise RiskError(a, "Territories Not Adjacent: "+repr(mv))
             if mv[0] in activated:
                 raise RiskError(a,
-                                "Cannot Move Into Activated Country: " +
-                                repr(mv))
+                                "Cannot Move Out Of Activated Country: "
+                                + repr(mv))
             self.armies[mv[0]] -= mv[2]
             self.armies[mv[1]] += mv[2]
-            if mv[1] not in activated:
-                activated.append(mv[1])
+            activated.add(mv[1])
 
             if self.debug:
                 print "%s transfers:" % a
