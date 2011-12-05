@@ -66,11 +66,14 @@ class Simulation:
                 self.process_attacks(a)
                 self.process_transfers(a)
             if self.debug:
-                print "---"
-                print "Owns: %s" % self.owns
-                print "---"
-                print "Armies: %s" % self.armies
-                print "---"
+                print "------------"
+                for agent in self.agents:
+                    print "----%" % agent
+                    print [(c, self.armies[c]) for c in self.owns[agent]]
+                print "Armies: %d" % sum(
+                    map(lambda c: self.armies[c], self.owns[agent]))
+                print "Territories: %d" % len(self.owns[agent])
+                print "------------"
             # Done with round
 
     def process_placements(self, a, numarmies, places):
