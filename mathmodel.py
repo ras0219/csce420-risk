@@ -75,6 +75,29 @@ class MathModel:
         # The following should NEVER happen...
         return (0,0)
 
+    def chance_to_win(self, army1, army2):
+        p = self.full_cdf(army1, army2)
+        u = util_winchance(army1, army2)
+        c = integral2d(p, u)
+        return c
+
+    # minimum_defenders :: Integer -> Double -> Integer
+    def minimum_defenders(self, army1, confidence):
+        # Note: high confidence means high capture chance
+        army2 = 1
+        while True:
+            if chance_to_win(army1, army2) <= confidence:
+                return army2
+            army2 += 1
+
+    # minimum_attackers :: Integer -> Double -> Integer
+    def minimum_attackers(self, army2, confidence):
+        # Note: high confidence means high capture chance
+        army1 = 1
+        while True:
+            if chance_to_win(army1, army2) >= confidence:
+                return army1
+            army1 += 1
 
 # integral2d :: {(Integer, Integer):Double} -> ((Integer, Integer) -> Double) -> Double
 def integral2d(patch, util_func):
@@ -82,3 +105,13 @@ def integral2d(patch, util_func):
     for k in patch:
         acc += patch[k] * util_func(*k)
     return acc
+
+
+# util_winchance
+class util_winchance:
+    def __init__(self, army1, army2):
+        self.a1 = army1
+        self.a2 = army2
+
+    def __call__(self, k):
+        return army1 + k[0] > 0
