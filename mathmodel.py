@@ -77,8 +77,7 @@ class MathModel:
 
     def chance_to_win(self, army1, army2):
         p = self.full_cdf(army1, army2)
-        u = util_winchance(army1, army2)
-        c = integral2d(p, u)
+        c = integral2d(p, lambda a1,a2: a1 > 0)
         return c
 
     # minimum_defenders :: Integer -> Double -> Integer
@@ -99,19 +98,9 @@ class MathModel:
                 return army1
             army1 += 1
 
-# integral2d :: {(Integer, Integer):Double} -> ((Integer, Integer) -> Double) -> Double
+# integral2d :: {(Integer, Integer):Double} -> (Integer -> Integer -> Double) -> Double
 def integral2d(patch, util_func):
     acc = 0.0
     for k in patch:
         acc += patch[k] * util_func(*k)
     return acc
-
-
-# util_winchance
-class util_winchance:
-    def __init__(self, army1, army2):
-        self.a1 = army1
-        self.a2 = army2
-
-    def __call__(self, k):
-        return army1 + k[0] > 0
