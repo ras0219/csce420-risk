@@ -1,8 +1,7 @@
-<<<<<<< HEAD
-=======
+
 from riskerror import RiskError
 from itertools import cycle
->>>>>>> 2a61c721dd344070165519a56a574ff5640d0506
+
 import random
 import os
 import os.path
