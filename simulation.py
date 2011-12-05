@@ -1,4 +1,4 @@
-import riskerror
+from riskerror import RiskError
 from itertools import cycle
 import random
 
@@ -110,6 +110,7 @@ class Simulation:
             self.armies[mv[0]] -= army1
             if a2 > 0:
                 self.armies[mv[1]] = a2
+                self.armies[mv[0]] += a1
             else:
                 # The attacker won
                 self.transfer_ownership(mv[1], a)
