@@ -61,7 +61,7 @@ class Simulation:
                 if len(self.owns[a]) == 0:
                     continue
                 numarmies = self.model.num_armies(self.owns[a])
-                places = a.pregame_place(numarmies, self)
+                places = a.place_armies(numarmies, self)
                 self.process_placements(a, numarmies, places)
                 self.process_attacks(a)
                 self.process_transfers(a)
