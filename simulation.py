@@ -1,151 +1,189 @@
-import riskerror
+<<<<<<< HEAD
+=======
+from riskerror import RiskError
+from itertools import cycle
+>>>>>>> 2a61c721dd344070165519a56a574ff5640d0506
 import random
+import os
+import os.path
+
+import riskerror
 
 class Simulation:
-    # data Simulation = Simulation Edgelist MathModel
-    def __init__(self, elist, mmodel):
-        self.edgelist = elist
-        self.model = mmodel
-        self.agent_id = 0
-        self.agents = {}
+
+    # data Simulation = Simulation Edgelist Subgraphlist MathModel Debug
+    def __init__(self, elist, sglist, mmodel, debug=False):
+        self.edgelist     = elist
+        self.subgraphlist = sglist
+        self.model        = mmodel
+        self.agents       = []
+        self.debug        = debug
+        self.logdir       = None
+
+    def set_logging(in_logging_directory):
+        self.logdir = in_logging_directory
+        if not os.path.exists(logdir):
+            os.mkdirs(logdir)
+
+    def log_image(image_number):
+        if self.logdir == None:
+            return
+        logname = "{:08d}".format(image_number) 
+        logfile = os.path.join(self.logdir, logname)
 
     # add_agent :: Agent -> IO ()
-    def add_agent(self, agent):
-        agent.set_id(self.agent_id)
-        self.agents[self.agent_id] = agent
-        # Maybe change this to have agents be colors?
-        self.agent_id += 1
+    def add_agent(self, a):
+        prefnames = a.preferred_ids(len(self.agents))
+        for name in prefnames:
+            valid = True
+            for agent in self.agents:
+                if str(agent) == str(name):
+                    valid = False
+                    break
+            if not valid:
+                continue
+            a.set_id(name)
+            self.agents.append(a)
+            return
+        a.set_id("Default Agent #%02d" % len(self.agents))
+        self.agents.append(a)
 
     # start :: IO ()
     def start(self):
         # initialize map
-        aids = self.agents.keys()
-        num_agents = len(aids)
         self.countries = {}
         self.owns = {}
         self.armies = {}
         clist = self.edgelist.keys()
         random.shuffle(clist)
-        for k in self.agents:
-            self.owns[k] = []
-        for c in range(len(clist)):
-            aid = aids[c % num_agents]
-            self.owns[aid].append(clist[c])
-            self.countries[clist[c]] = aid
-            self.armies[clist[c]] = 1
+        for a in self.agents:
+            self.owns[a] = []
+        for c, a in zip(clist, cycle(self.agents)):
+            self.owns[a].append(c)
+            self.countries[c] = a
+            self.armies[c] = 1
 
-        print "Countries"
-        print self.countries
-        print "Owns"
-        print self.owns
-        print "Armies"
-        print self.armies
+        if self.debug:
+            print "Countries"
+            print self.countries
+            print "Owns"
+            print self.owns
+            print "Armies"
+            print self.armies
         
         numarmies = self.model.pregame_armies
-        for aid in self.agents:
-            places = self.agents[aid].pregame_place(numarmies, self)
-            self.process_placements(aid, numarmies, places)
+        for a in self.agents:
+            places = a.pregame_place(numarmies, self)
+            self.process_placements(a, numarmies, places)
 
         while not self.is_ended():
             # Begin game
-            for aid in self.agents:
-                if len(self.owns[aid]) == 0:
+            for a in self.agents:
+                if len(self.owns[a]) == 0:
                     continue
-                numarmies = self.model.num_armies(self.owns[aid])
-                places = self.agents[aid].pregame_place(numarmies, self)
-                self.process_placements(aid, numarmies, places)
-                self.process_attacks(aid)
-                self.process_transfers(aid)
-
-            print self.owns
-            print self.armies
+                numarmies = self.model.num_armies(self.owns[a])
+                places = a.place_armies(numarmies, self)
+                self.process_placements(a, numarmies, places)
+                self.process_attacks(a)
+                self.process_transfers(a)
+            if self.debug:
+                print "------------"
+                for agent in self.agents:
+                    print "----%s" % agent
+                    print [(c, self.armies[c]) for c in self.owns[agent]]
+                    print "Armies: %d" % sum(
+                        map(lambda c: self.armies[c], self.owns[agent]))
+                    print "Territories: %d" % len(self.owns[agent])
+                print "------------"
             # Done with round
 
-    def process_placements(self, aid, numarmies, places):
+    def process_placements(self, a, numarmies, places):
         if sum(places.values()) > numarmies:
-            raise RiskError(aid, "Too many pregame self.armies")
+            raise RiskError(a, "Too many pregame self.armies")
         for p in places:
             if p not in self.countries:
-                raise RiskError(aid, "Invalid Country "+repr(p))
-            if not self.countries[p] == aid:
-                raise RiskError(aid, "Unowned Country "+repr(p))
+                raise RiskError(a, "Invalid Country "+repr(p))
+            if not self.countries[p] == a:
+                raise RiskError(a, "Unowned Country "+repr(p))
             if places[p] < 0:
-                raise RiskError(aid, "Negative self.armies")
+                raise RiskError(a, "Negative self.armies")
             self.armies[p] += places[p]
-        print "Agent "+str(aid)+" places self.armies:"
-        print places
-        print ""
+        if self.debug:
+            print "%s places self.armies:" % a
+            print places
+            print ""
         
 
-    # process_transfers :: AgentID -> IO ()
-    def process_attacks(self, aid):
-        for mv in self.generate(self.agents[aid].attack):
-            if mv[0] not in self.owns[aid]:
-                raise RiskError(aid, "Unowned Source Country: "+repr(mv))
-            if mv[1] in self.owns[aid]:
-                raise RiskError(aid, "Owned Dest Country: "+repr(mv))
+    # process_transfers :: Agent -> IO ()
+    def process_attacks(self, a):
+        for mv in self.generate(a.attack):
+            if mv[0] not in self.owns[a]:
+                raise RiskError(a, "Unowned Source Country: "+repr(mv))
+            if mv[1] in self.owns[a]:
+                raise RiskError(a, "Owned Dest Country: "+repr(mv))
             if mv[2]+1 > self.armies[mv[0]]:
-                raise RiskError(aid, "Too Many self.armies: "+repr(mv))
+                raise RiskError(a, "Too Many self.armies: "+repr(mv))
             if mv[2] < 1:
-                raise RiskError(aid, "Not Enough self.armies: "+repr(mv))
+                raise RiskError(a, "Not Enough self.armies: "+repr(mv))
             if mv[1] not in self.edgelist[mv[0]]:
-                raise RiskError(aid, "Territories Not Adjacent: "+repr(mv))
+                raise RiskError(a, "Territories Not Adjacent: "+repr(mv))
 
             army1 = mv[2]
             army2 = self.armies[mv[1]]
-            L1, L2 = self.model.perform_combat(army1, army2)
-            self.armies[mv[1]] += L2
-            if self.armies[mv[1]] > 0:
-                self.armies[mv[0]] += L1
+            a1, a2 = self.model.perform_combat(army1, army2)
+            self.armies[mv[0]] -= army1
+            if a2 > 0:
+                self.armies[mv[1]] = a2
+                self.armies[mv[0]] += a1
             else:
                 # The attacker won
-                self.transfer_ownership(mv[1], aid)
-                self.armies[mv[0]] -= mv[2]
-                self.armies[mv[1]] = mv[2] + L1
-            print "Agent "+str(aid)+" attacks:"
-            print mv
-            print "Results: %4s  vs %4s" % (army1,army2)
-            print "         %4s  vs %4s" % (L1, L2)
-            print ""
+                self.transfer_ownership(mv[1], a)
+                self.armies[mv[1]] = a1
+            if self.debug:
+                print "%30s attacks: %s" % (a, mv)
+                print "Results: %4s  vs %4s" % (army1, army2)
+                print "    Now: %4s  vs %4s" % (a1, a2)
+                print ""
 
-    # process_transfers :: AgentID -> IO ()
-    def process_transfers(self, aid):
-        activated = []
-        for mv in self.generate(self.agents[aid].transfer):
-            if mv[0] not in self.owns[aid]:
-                raise RiskError(aid, "Unowned Source Country: "+repr(mv))
-            if mv[1] not in self.owns[aid]:
-                raise RiskError(aid, "Unowned Dest Country: "+repr(mv))
+    # process_transfers :: Agent -> IO ()
+    def process_transfers(self, a):
+        activated = set()
+        for mv in self.generate(a.transfer):
+            if mv[0] not in self.owns[a]:
+                raise RiskError(a, "Unowned Source Country: "+repr(mv))
+            if mv[1] not in self.owns[a]:
+                raise RiskError(a, "Unowned Dest Country: "+repr(mv))
             if mv[2]+1 > self.armies[mv[0]]:
-                raise RiskError(aid, "Too Many self.armies: "+repr(mv))
+                raise RiskError(a, "Too Many self.armies: "+repr(mv))
             if mv[2] < 1:
-                raise RiskError(aid, "Not Enough self.armies: "+repr(mv))
+                raise RiskError(a, "Not Enough self.armies: "+repr(mv))
             if mv[1] not in self.edgelist[mv[0]]:
-                raise RiskError(aid, "Territories Not Adjacent: "+repr(mv))
+                raise RiskError(a, "Territories Not Adjacent: "+repr(mv))
             if mv[0] in activated:
-                raise RiskError(aid,
-                                "Cannot Move Into Activated Country: " +
-                                repr(mv))
+                raise RiskError(a,
+                                "Cannot Move Out Of Activated Country: "
+                                + repr(mv))
             self.armies[mv[0]] -= mv[2]
             self.armies[mv[1]] += mv[2]
-            if mv[1] not in activated:
-                activated.append(mv[1])
-            print "Agent "+str(aid)+" transfers:"
-            print mv
-            print ""
+            activated.add(mv[1])
 
-    # transfer_ownership :: String -> AgentID -> IO ()
-    def transfer_ownership(self, land, agent):
+            if self.debug:
+                print "%s transfers:" % a
+                print mv
+                print ""
+
+    # transfer_ownership :: String -> A -> IO ()
+    def transfer_ownership(self, land, a):
         # Update all data structures needed to reflect change in ownership
         old = self.countries[land]
         self.owns[old].remove(land)
-        self.owns[agent].append(land)
-        self.countries[land] = agent
+        self.owns[a].append(land)
+        self.countries[land] = a
 
     # eval_turn :: (Simulation -> Move) -> Iterator Move
-    def generate(self, agent_func):
+    def generate(self, a_func):
         while True:
-            mv = agent_func(self)
+            mv = a_func(self)
             if mv == None:
                 break
             yield mv
@@ -158,3 +196,9 @@ class Simulation:
             if len(v) > 0:
                 rem_players += 1
         return rem_players <= 1
+
+    def winner(self):
+        for k,v in self.owns.items():
+            if len(v) > 0:
+                return k
+        return None
