@@ -8,16 +8,18 @@ def main():
     elist = riskboard.territory_adjacency
     sglist = riskboard.region_memberships
     winners = {}
-    for n in range(100):
+
+    for n in range(50):
         sim = simulation.Simulation(elist, sglist, model)
-        sim.add_agent(test_agent.TestAgent())
-        sim.add_agent(test_agent.TestAgent())
-        sim.add_agent(test_agent.TestAgent())
-        sim.add_agent(test_agent.TestAgent())
+        sim.add_agent(test_agent.TestAgent(0))
+        sim.add_agent(test_agent.TestAgent(0))
+        sim.add_agent(test_agent.TestAgent(1))
+        sim.add_agent(test_agent.TestAgent(1))
+
         sim.start()
         winner = sim.winner()
-        print "Winner is %d" % winner
-        winners[winner] = winners.get(winner, 0) + 1
+        print "%3d) Winner is %s" % (n, winner)
+        winners[str(winner)] = winners.get(str(winner), 0) + 1
     print winners
         
 
