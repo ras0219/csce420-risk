@@ -1,31 +1,60 @@
+#!/usr/bin/python
+
 import simulation
 import mathmodel
 import riskboard
 import test_agent
 #import secret_agent
 import red_agent
-import red_agent_v2
+from optparse import OptionParser
 
 def main():
+    parser = OptionParser()
+    parser.add_option(
+        "-l", "--logdir",
+        action="store",
+        dest="logdir",
+        type="string", default=None,
+        help="export images to logdir (use %d for round number)")
+    parser.add_option(
+        "-v", "--verbose",
+        action="store_true", dest="verbose",
+        default=False,
+        help="enable verbose simulation output")
+    parser.add_option(
+        "-q", "--quiet",
+        action="store_false", dest="verbose",
+        help="disable verbose simulation output")
+    parser.add_option(
+        "-n", "--count",
+        action="store", dest="count",
+        type="int", default=1,
+        help="specify number of rounds to run (default 1)")
+
+    (options, args) = parser.parse_args()
+
     model = mathmodel.MathModel()
     elist = riskboard.territory_adjacency
     sglist = riskboard.region_memberships
     winners = {}
 
-    for n in range(2,3):
-        sim = simulation.Simulation(elist, sglist, model, False)
-#        sim.add_agent(test_agent.TestAgent(0))
-#        sim.add_agent(red_agent.RedAgent(minctw=0.5))
-#        sim.add_agent(secret_agent.SecretAgent())
-#        sim.add_agent(test_agent.TestAgent(1))
-#        sim.add_agent(secret_agent.SecretAgent())
-        sim.add_agent(red_agent_v2.RedAgent(minctw=0.9))
-        sim.add_agent(red_agent.RedAgent(minctw=0.7))
-        sim.add_agent(red_agent.RedAgent(minctw=0.7))
-        sim.add_agent(red_agent_v2.RedAgent(minctw=0.7))
+    for n in range(1,options.count+1):
+        sim = simulation.Simulation(elist, sglist, model,
+                                    debug=options.verbose)
+        #sim.add_agent(test_agent.TestAgent(0))
+        #sim.add_agent(test_agent.TestAgent(0))
+        #sim.add_agent(test_agent.TestAgent(1))
+        #sim.add_agent(secret_agent.SecretAgent())
+        sim.add_agent(test_agent.TestAgent(1))
+        sim.add_agent(red_agent.RedAgent(minctw=0.9))
 
-#        sim.set_logging("log%08d" % n)
-        sim.set_logging("/home/rschumacher/public_html/BaronVsBaron%04d" % n)
+        if options.logdir:
+            try:
+                ldir = options.logdir % n
+            except TypeError:
+                ldir = options.logdir
+            sim.set_logging(ldir)
+            sim.set_formats(['png'])
         sim.start()
         winner = sim.winner()
         print "%3d) Winner is %s" % (n, winner)
