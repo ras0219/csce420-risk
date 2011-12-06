@@ -75,14 +75,14 @@ class RedAgent(agent.Agent):
                 dist_to_edge += 1
             self.terraset = set(sim.owns[self])
             self.unactivated = self.terraset.copy()
-            print self.tree
+#            print self.tree
 
         owned = sorted(self.unactivated, key=lambda c: self.tree[c], reverse=True)
         while len(owned) > 0:
             c = owned.pop()
             if self.tree[c] == 0:
                 continue
-            print owned, c
+#            print owned, c
             if sim.armies[c] > 1:
                 # find the gradient
                 for k in sim.edgelist[c]:
