@@ -40,7 +40,7 @@ class MathModel:
         if army2 < 1:
             return {(army1,0):1.00}
 
-        
+        # Otherwise return the appropriate patches.
         if army1 == 1 and army2 == 1:
             return {(1,0):0.4167,
                     (0,1):0.5833}

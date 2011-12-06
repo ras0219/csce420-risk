@@ -1,5 +1,7 @@
+
 from riskerror import RiskError
 from itertools import cycle
+
 import random
 import os
 import os.path
