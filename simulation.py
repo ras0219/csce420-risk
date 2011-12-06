@@ -48,8 +48,13 @@ class Simulation:
     # start :: IO ()
     def start(self):
         # initialize map
+				# self.countries :: String => Int
         self.countries = {}
+
+				# self.owns :: Agent => [String]
         self.owns = {}
+
+				# self.armies :: String => Int
         self.armies = {}
         clist = self.edgelist.keys()
         random.shuffle(clist)

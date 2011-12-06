@@ -1,25 +1,29 @@
 import agent
 import random
 import mathmodel
+import graph_funcs
 
 class SecretAgent(agent.Agent):
+	def __init__(self):
+		self.mm = mathmodel.MathModel()
+
 	def preferred_ids(self, num):
 		return ["Secret Agent Man #%02d" % num]
 
 	def pregame_place(self, numarmies, sim):
-		c = random.choice(sim.owns[self.aid])
+		c = random.choice(sim.owns[self])
 		return {c:numarmies}
 
 	def attack(self, sim):
 		self.sim = sim
 
-		owned = sim.owns[self.aid]
+		owned = sim.owns[self]
 		if len(owned) == 0:
 			# Uh... we don't own anything...
 			return None
 
 		# Find the largest cluster of countries that we own
-		stronghold = max(regions(owned, sim.edgelist), key=len)
+		stronghold = max(graph_funcs.regions(owned, sim.edgelist), key=len)
 
 		scorez = []
 		for country in stronghold:
@@ -30,8 +34,8 @@ class SecretAgent(agent.Agent):
 
 			# Retrieve a list of neighboring countries
 			neighbors = sim.edgelist[country]
-			neighbors = filter(lambda c: sim.countries[c] != self.aid, neighbors)
-			neighbors = sorted(neighbors, key=self.army_size)
+			neighbors = filter(lambda c: sim.countries[c] != self, neighbors)
+			neighbors = sorted(neighbors, key=lambda i: sim.armies[i])
 			if len(neighbors) == 0:
 				continue
 
@@ -39,7 +43,7 @@ class SecretAgent(agent.Agent):
 				#patch = sim.model.full_cdf()
 				#chancetowin = mathmodel.integral2d(patch, lambda a1,a2: a1 > 0)
 				# LOL there's a function for that LOL
-				score = mathmodel.chance_to_win(neighbor.army_size, country)
+				score = self.mm.chance_to_win(sim.armies[neighbor], sim.armies[country])
 				scorez += [(country, neighbor, score)]
 
 		if(scorez):
@@ -48,7 +52,7 @@ class SecretAgent(agent.Agent):
 		return None
 
 	def place_armies(self, numarmies, sim):
-		pregame_place(numarmies, sim)
+		return self.pregame_place(numarmies, sim)
 
 	def army_size(self,c):
 		return self.sim.armies[c]
