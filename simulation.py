@@ -26,7 +26,7 @@ class Simulation:
     def log_image(self, image_number):
         if self.logdir == None:
             return
-        logname = "{:08d}.svg".format(image_number) 
+        logname = "%08d.svg" % image_number 
         logfile = os.path.join(self.logdir, logname)
 
         boardgraph = pgv.AGraph(overlap='false')
@@ -40,9 +40,9 @@ class Simulation:
                 hue        = agentfloat / len(self.agents)
                 sat        = 0.9
                 val        = 0.9
-                colorstring = "{:f},{:f},{:f}".format(hue, sat, val)
+                colorstring = "%f,%f,%f" % (hue, sat, val)
 
-                decorated = territory + " {:d}".format(self.armies[territory])
+                decorated = territory + " %d" % self.armies[territory]
                 base_to_decorated[territory] = decorated
 
                 boardgraph.add_node(base_to_decorated[territory], color=colorstring)
