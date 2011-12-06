@@ -34,7 +34,7 @@ class SecretAgent(agent.Agent):
 			# We don't have enough dudes to attack from this country
 			# Retreat!!!!
 			if self.army_size(country) < 2:
-				break
+				continue
 
 			# Retrieve a list of neighboring countries
 			neighbors = sim.edgelist[country]
@@ -49,14 +49,15 @@ class SecretAgent(agent.Agent):
 				# LOL there's a function for that LOL
 				score = self.mm.chance_to_win(sim.armies[country], sim.armies[neighbor])
 				scorez += [(country, neighbor, score)]
-			#print neighbors
-			#print scorez
+#			print country,neighbors
+#			print scorez
 			#raw_input()
 
 		if len(scorez) > 0:
 			victim = sorted(scorez, key = lambda i: i[2]).pop()
-			return (victim[0], victim[1], sim.armies[victim[0]]/2)
-
+			return (victim[0], victim[1], sim.armies[victim[0]] - 1)
+#		print "Done"
+		#raw_input()
 		return None
 
 	def place_armies(self, numarmies, sim):
@@ -66,7 +67,8 @@ class SecretAgent(agent.Agent):
 		stronghold = graph_funcs.inner_border(stronghold, sim.edgelist)
 
 		def summator(x):
-			return sum(map(lambda i: sim.armies[i], sim.edgelist[x]))
+			edges = filter(lambda i: sim.countries[i] != self, sim.edgelist[x])
+			return sum(map(lambda i: sim.armies[i], edges))
 
 		threatened = map(lambda i: (i,summator(i)), stronghold)
 		coolest = max(threatened, key=lambda i: i[1])
