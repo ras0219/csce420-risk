@@ -43,10 +43,13 @@ class SecretAgent(agent.Agent):
 				#patch = sim.model.full_cdf()
 				#chancetowin = mathmodel.integral2d(patch, lambda a1,a2: a1 > 0)
 				# LOL there's a function for that LOL
-				score = self.mm.chance_to_win(sim.armies[neighbor], sim.armies[country])
+				score = self.mm.chance_to_win(sim.armies[country], sim.armies[neighbor])
 				scorez += [(country, neighbor, score)]
+			#print neighbors
+			#print scorez
+			#raw_input()
 
-		if(scorez):
+		if len(scorez) > 0:
 			victim = sorted(scorez, key = lambda i: i[2]).pop()
 			return (victim[0], victim[1], sim.armies[victim[0]]/2)
 
