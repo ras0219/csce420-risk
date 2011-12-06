@@ -50,6 +50,7 @@ def main():
             except TypeError:
                 ldir = options.logdir
             sim.set_logging(ldir)
+            sim.set_formats(['png'])
         sim.start()
         winner = sim.winner()
         print "%3d) Winner is %s" % (n, winner)

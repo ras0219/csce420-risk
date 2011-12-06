@@ -21,6 +21,7 @@ class Simulation:
         self.agents       = []
         self.debug        = debug
         self.logdir       = None
+        self.formats      = ['svg']
 
     def set_logging(self, in_logging_directory):
         assert GRAPHVIZ_AVAIL
@@ -28,13 +29,15 @@ class Simulation:
         if not os.path.exists(self.logdir):
             os.mkdir(self.logdir)
 
+    def set_formats(self, formats):
+        assert GRAPHVIZ_AVAIL
+        assert formats != []
+        self.formats = formats
+
     def log_image(self, image_number):
         if self.logdir == None or not GRAPHVIZ_AVAIL:
             return
-        logname = "%08d.svg" % image_number 
-        logfile = os.path.join(self.logdir, logname)
-
-        boardgraph = pgv.AGraph(overlap='false', size='13.0,8.0', aspect='1.6')
+        boardgraph = pgv.AGraph(overlap='false', size='11.60,8.10', aspect='1.33')
 
         # Introduce all nodes in their continent groupings
         base_to_decorated = {}
@@ -44,7 +47,7 @@ class Simulation:
                 agentfloat = float(self.agents.index(self.countries[territory]))
                 hue        = agentfloat / len(self.agents)
                 sat        = 0.4
-                val        = 0.75
+                val        = 0.85
                 colorstring = "%f,%f,%f" % (hue, sat, val)
 
                 decorated = "%s %d\\n%s" % (territory,
@@ -56,8 +59,9 @@ class Simulation:
                                     color='black',
                                     fillcolor = colorstring,
                                     style='filled',
-                                    fontsize=24)
-                
+                                    fontsize=24,
+                                    height=1)
+
             # Define continent subgraphs
             boardgraph.add_subgraph(territories, continent)
 
@@ -65,9 +69,13 @@ class Simulation:
         for (src, dstlist) in self.edgelist.items():
             for dst in dstlist:
                 boardgraph.add_edge(base_to_decorated[src],
-                                    base_to_decorated[dst])
+                                    base_to_decorated[dst],
+                                    len=2)
 
-        boardgraph.draw(path=logfile, format='svg', prog='neato')
+        for frmt in self.formats:
+            logname = "%08d.%s" % (image_number,frmt)
+            logfile = os.path.join(self.logdir, logname)
+            boardgraph.draw(path=logfile, format=frmt, prog='neato')
         
         
     # add_agent :: Agent -> IO ()
