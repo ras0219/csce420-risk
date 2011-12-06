@@ -26,7 +26,7 @@ class SecretAgent(agent.Agent):
 		stronghold = max(graph_funcs.regions(owned, sim.edgelist), key=len)
 
 		scorez = []
-		for country in stronghold:
+		for country in graph_funcs.inner_border(stronghold, sim.edgelist):
 			# We don't have enough dudes to attack from this country
 			# Retreat!!!!
 			if self.army_size(country) < 2:
@@ -43,16 +43,31 @@ class SecretAgent(agent.Agent):
 				#patch = sim.model.full_cdf()
 				#chancetowin = mathmodel.integral2d(patch, lambda a1,a2: a1 > 0)
 				# LOL there's a function for that LOL
-				score = self.mm.chance_to_win(sim.armies[neighbor], sim.armies[country])
+				score = self.mm.chance_to_win(sim.armies[country], sim.armies[neighbor])
 				scorez += [(country, neighbor, score)]
+			#print neighbors
+			#print scorez
+			#raw_input()
 
-		if(scorez):
-			return sorted(scorez, key = lambda i: i[2]).pop()
+		if len(scorez) > 0:
+			victim = sorted(scorez, key = lambda i: i[2]).pop()
+			return (victim[0], victim[1], sim.armies[victim[0]]/2)
 
 		return None
 
 	def place_armies(self, numarmies, sim):
-		return self.pregame_place(numarmies, sim)
+		#return self.pregame_place(numarmies, sim) # STUPID
+		owned = sim.owns[self]
+		stronghold = max(graph_funcs.regions(owned, sim.edgelist), key=len)
+		stronghold = graph_funcs.inner_border(stronghold, sim.edgelist)
+
+		def summator(x):
+			return sum(map(lambda i: sim.armies[i], sim.edgelist[x]))
+
+		threatened = map(lambda i: (i,summator(i)), stronghold)
+		coolest = max(threatened, key=lambda i: i[1])
+
+		return {coolest[0]: numarmies}
 
 	def army_size(self,c):
 		return self.sim.armies[c]
