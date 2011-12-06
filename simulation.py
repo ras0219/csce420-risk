@@ -116,6 +116,11 @@ class Simulation:
             self.process_placements(a, numarmies, places)
 
         roundnum = 0
+
+        if self.logdir != None:
+            self.log_image(roundnum)
+            roundnum = roundnum + 1
+
         while not self.is_ended():
             # Begin game
             for a in self.agents:
