@@ -11,7 +11,11 @@ class SecretAgent(agent.Agent):
 		return ["Secret Agent Man #%02d" % num]
 
 	def pregame_place(self, numarmies, sim):
-		c = random.choice(sim.owns[self])
+		#c = random.choice(sim.owns[self])
+		#return {c:numarmies}
+		owned = sim.owns[self]
+		stronghold = max(graph_funcs.regions(owned, sim.edgelist), key=len)
+		c = random.choice(stronghold)
 		return {c:numarmies}
 
 	def attack(self, sim):
