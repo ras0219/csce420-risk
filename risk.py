@@ -2,6 +2,7 @@ import simulation
 import mathmodel
 import riskboard
 import test_agent
+import secret_agent
 import red_agent
 
 def main():
@@ -10,14 +11,17 @@ def main():
     sglist = riskboard.region_memberships
     winners = {}
 
-    for n in range(1):
-        sim = simulation.Simulation(elist, sglist, model, debug=True)
-        sim.add_agent(red_agent.RedAgent())
-        sim.add_agent(test_agent.TestAgent(0))
+    for n in range(1,40):
+        sim = simulation.Simulation(elist, sglist, model, False)
+#        sim.add_agent(test_agent.TestAgent(0))
+#        sim.add_agent(red_agent.RedAgent(minctw=0.5))
+#        sim.add_agent(secret_agent.SecretAgent())
         sim.add_agent(test_agent.TestAgent(1))
-        sim.add_agent(test_agent.TestAgent(1))
+        sim.add_agent(secret_agent.SecretAgent())
+        sim.add_agent(red_agent.RedAgent(minctw=0.7))
 
-        sim.set_logging("log%08d" % n)
+#        sim.set_logging("log%08d" % n)
+        sim.set_logging("/home/rschumacher/public_html/RiseToPower%04d" % n)
         sim.start()
         winner = sim.winner()
         print "%3d) Winner is %s" % (n, winner)
