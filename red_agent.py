@@ -4,13 +4,13 @@ import mathmodel
 from itertools import ifilter
 
 class RedAgent(agent.Agent):
-    def __init__(self, minctw=0.7, debug=False):
+    def __init__(self, minctw=0.9, debug=False):
         self.minctw = minctw
         self.debug = debug
         self.terraset = set()
 
     def preferred_ids(self, num):
-        return ["Red Baron Returns", "Red Baron Returns (%d)" % num]
+        return ["Red Baron Redux", "Red Baron Redux (%d)" % num]
 
     def pregame_place(self, numarmies, sim):
         locs = sim.owns[self]
@@ -51,6 +51,10 @@ class RedAgent(agent.Agent):
                 return (src, dst, army1)
         return None
 
+    def __call__(self, army1, army2):
+        # implement a utility metric here
+        return army1 > 0
+
     def transfer(self, sim):
         owned = set(sim.owns[self])
         if self.terraset != owned:
@@ -77,18 +81,33 @@ class RedAgent(agent.Agent):
             self.terraset = set(sim.owns[self])
             self.unactivated = self.terraset.copy()
 
-        owned = sorted(self.unactivated, key=lambda c: self.tree[c], reverse=True)
+        def edgestr(c):
+            return (-self.tree[c], self.sim.armies[c])
+
+        owned = sorted(self.unactivated, key=edgestr)
         while len(owned) > 0:
             c = owned.pop()
             if self.tree[c] == 0:
+                ar1 = self.army_size(c)
+                edges = filter(lambda k: k in self.tree, sim.edgelist[c])
+                edges = filter(lambda k: self.tree[k] == 0, edges)
+                edges = filter(lambda k: ar1-self.army_size(k) > 1, edges)
+                if len(edges) > 0:
+                    targ = edges.pop()
+                    self.unactivated.discard(targ)
+                    return (c, targ, (ar1 - self.army_size(targ))/2)
                 continue
             if sim.armies[c] > 1:
                 # find the gradient
-                for k in sim.edgelist[c]:
-                    if k in self.unactivated:
-                        if self.tree[k] < self.tree[c]:
-                            self.unactivated.remove(k)
-                            return (c, k, sim.armies[c]-1)
+                def gradient(k):
+                    return k in self.tree and self.tree[k] < self.tree[c]
+
+                edges = filter(gradient, sim.edgelist[c])
+                edges.sort(key=self.army_size, reverse=True)
+                targ = edges.pop()
+                self.unactivated.discard(targ)
+                return (c, targ, sim.armies[c]-1)
+
         self.unactivated = self.terraset.copy()
         return None
 
