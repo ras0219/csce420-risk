@@ -1,10 +1,12 @@
 import agent
 import random
 import mathmodel
+from itertools import ifilter
 
 class RedAgent(agent.Agent):
     def __init__(self, minctw=0.7):
         self.minctw = minctw
+        self.terraset = set()
 
     def preferred_ids(self, num):
         return ["Red Baron Returns", "Red Baron Returns (%d)" % num]
@@ -46,6 +48,49 @@ class RedAgent(agent.Agent):
             chancetowin = mathmodel.integral2d(patch, lambda a1,a2: a1 > 0)
             if chancetowin > self.minctw:
                 return (src, dst, army1)
+        return None
+
+    def transfer(self, sim):
+        owned = set(sim.owns[self])
+        if self.terraset != owned:
+            if sim.is_ended():
+                return None
+            # update radius graph
+            self.tree = {}
+
+            def on_current_edge(c):
+                for k in sim.edgelist[c]:
+                    if sim.countries[k] != self:
+                        return True
+                    if k in self.tree:
+                        return True
+                return False
+
+            dist_to_edge = 0
+            while len(owned) > 0:
+                edges = filter(on_current_edge, owned)
+                for e in edges:
+                    self.tree[e] = dist_to_edge
+                    owned.remove(e)
+                dist_to_edge += 1
+            self.terraset = set(sim.owns[self])
+            self.unactivated = self.terraset.copy()
+            print self.tree
+
+        owned = sorted(self.unactivated, key=lambda c: self.tree[c], reverse=True)
+        while len(owned) > 0:
+            c = owned.pop()
+            if self.tree[c] == 0:
+                continue
+            print owned, c
+            if sim.armies[c] > 1:
+                # find the gradient
+                for k in sim.edgelist[c]:
+                    if k in self.unactivated:
+                        if self.tree[k] < self.tree[c]:
+                            self.unactivated.remove(k)
+                            return (c, k, sim.armies[c]-1)
+        self.unactivated = self.terraset.copy()
         return None
 
     def place_armies(self, numarmies, sim):
