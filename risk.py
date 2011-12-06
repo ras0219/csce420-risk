@@ -9,8 +9,8 @@ def main():
     sglist = riskboard.region_memberships
     winners = {}
 
-    for n in range(50):
-        sim = simulation.Simulation(elist, sglist, model, True)
+    for n in range(4):
+        sim = simulation.Simulation(elist, sglist, model, False)
         sim.add_agent(test_agent.TestAgent(0))
         sim.add_agent(test_agent.TestAgent(0))
         sim.add_agent(test_agent.TestAgent(1))

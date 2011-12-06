@@ -29,7 +29,7 @@ class Simulation:
         logname = "%08d.svg" % image_number 
         logfile = os.path.join(self.logdir, logname)
 
-        boardgraph = pgv.AGraph(overlap='false')
+        boardgraph = pgv.AGraph(overlap='false', size='13.0,8.0', aspect='1.6')
 
         # Introduce all nodes in their continent groupings
         base_to_decorated = {}
@@ -38,14 +38,20 @@ class Simulation:
             for territory in territories:
                 agentfloat = float(self.agents.index(self.countries[territory]))
                 hue        = agentfloat / len(self.agents)
-                sat        = 0.9
-                val        = 0.9
+                sat        = 0.5
+                val        = 0.5
                 colorstring = "%f,%f,%f" % (hue, sat, val)
 
-                decorated = territory + " %d" % self.armies[territory]
+                decorated = territory                           \
+                            + " %d" % self.armies[territory]    \
+                            + " %s" % self.countries[territory] 
                 base_to_decorated[territory] = decorated
 
-                boardgraph.add_node(base_to_decorated[territory], color=colorstring)
+                boardgraph.add_node(base_to_decorated[territory],
+                                    color='black',
+                                    fillcolor = colorstring,
+                                    style='filled',
+                                    fontsize=24)
                 
             # Define continent subgraphs
             boardgraph.add_subgraph(territories, continent)
@@ -120,10 +126,12 @@ class Simulation:
                 self.process_placements(a, numarmies, places)
                 self.process_attacks(a)
                 self.process_transfers(a)
-            if self.debug:
+
+            if self.logdir != None:
                 self.log_image(roundnum)
                 roundnum = roundnum + 1
-
+                
+            if self.debug:
                 print "------------"
                 for agent in self.agents:
                     print "----%s" % agent
