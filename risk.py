@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import simulation
 import mathmodel
 import riskboard
