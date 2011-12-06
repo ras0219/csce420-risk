@@ -17,7 +17,7 @@ def main():
         sim.add_agent(test_agent.TestAgent(1))
         sim.add_agent(test_agent.TestAgent(1))
 
-        sim.set_logging("log{:08d}".format(n))
+        sim.set_logging("log%08d" % n)
         sim.start()
         winner = sim.winner()
         print "%3d) Winner is %s" % (n, winner)
