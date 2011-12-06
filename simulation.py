@@ -1,4 +1,3 @@
-
 from riskerror import RiskError
 from itertools import cycle
 
@@ -80,8 +79,13 @@ class Simulation:
     # start :: IO ()
     def start(self):
         # initialize map
+				# self.countries :: String => Int
         self.countries = {}
+
+				# self.owns :: Agent => [String]
         self.owns = {}
+
+				# self.armies :: String => Int
         self.armies = {}
         clist = self.edgelist.keys()
         random.shuffle(clist)
@@ -130,6 +134,7 @@ class Simulation:
                 print "------------"
             # Done with round
 
+    # process_placements :: Agent -> Integer -> {String:Integer} -> IO()
     def process_placements(self, a, numarmies, places):
         if sum(places.values()) > numarmies:
             raise RiskError(a, "Too many pregame self.armies")
@@ -230,6 +235,7 @@ class Simulation:
                 rem_players += 1
         return rem_players <= 1
 
+    # winner :: Bool
     def winner(self):
         for k,v in self.owns.items():
             if len(v) > 0:
