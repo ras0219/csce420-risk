@@ -5,7 +5,11 @@ import random
 import os
 import os.path
 
-import pygraphviz as pgv
+try:
+    import pygraphviz as pgv
+    GRAPHVIZ_AVAIL = True
+except:
+    GRAPHVIZ_AVAIL = False
 
 class Simulation:
 
@@ -19,12 +23,13 @@ class Simulation:
         self.logdir       = None
 
     def set_logging(self, in_logging_directory):
+        assert GRAPHVIZ_AVAIL
         self.logdir = in_logging_directory
         if not os.path.exists(self.logdir):
             os.mkdir(self.logdir)
 
     def log_image(self, image_number):
-        if self.logdir == None:
+        if self.logdir == None or not GRAPHVIZ_AVAIL:
             return
         logname = "%08d.svg" % image_number 
         logfile = os.path.join(self.logdir, logname)
