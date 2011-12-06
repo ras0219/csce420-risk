@@ -10,12 +10,13 @@ def main():
     winners = {}
 
     for n in range(50):
-        sim = simulation.Simulation(elist, sglist, model)
+        sim = simulation.Simulation(elist, sglist, model, True)
         sim.add_agent(test_agent.TestAgent(0))
         sim.add_agent(test_agent.TestAgent(0))
         sim.add_agent(test_agent.TestAgent(1))
         sim.add_agent(test_agent.TestAgent(1))
 
+        sim.set_logging("log{:08d}".format(n))
         sim.start()
         winner = sim.winner()
         print "%3d) Winner is %s" % (n, winner)

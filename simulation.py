@@ -6,7 +6,7 @@ import random
 import os
 import os.path
 
-import riskerror
+import pygraphviz as pgv
 
 class Simulation:
 
@@ -19,17 +19,47 @@ class Simulation:
         self.debug        = debug
         self.logdir       = None
 
-    def set_logging(in_logging_directory):
+    def set_logging(self, in_logging_directory):
         self.logdir = in_logging_directory
-        if not os.path.exists(logdir):
-            os.mkdirs(logdir)
+        if not os.path.exists(self.logdir):
+            os.mkdir(self.logdir)
 
-    def log_image(image_number):
+    def log_image(self, image_number):
         if self.logdir == None:
             return
-        logname = "{:08d}".format(image_number) 
+        logname = "{:08d}.svg".format(image_number) 
         logfile = os.path.join(self.logdir, logname)
 
+        boardgraph = pgv.AGraph(overlap='false')
+
+        # Introduce all nodes in their continent groupings
+        base_to_decorated = {}
+        for (continent, territories) in self.subgraphlist.items():
+            # Annotate nodes with their agent colors and troop counts
+            for territory in territories:
+                agentfloat = float(self.agents.index(self.countries[territory]))
+                hue        = agentfloat / len(self.agents)
+                sat        = 0.9
+                val        = 0.9
+                colorstring = "{:f},{:f},{:f}".format(hue, sat, val)
+
+                decorated = territory + " {:d}".format(self.armies[territory])
+                base_to_decorated[territory] = decorated
+
+                boardgraph.add_node(base_to_decorated[territory], color=colorstring)
+                
+            # Define continent subgraphs
+            boardgraph.add_subgraph(territories, continent)
+
+        # Introduce all edges
+        for (src, dstlist) in self.edgelist.items():
+            for dst in dstlist:
+                boardgraph.add_edge(base_to_decorated[src],
+                                    base_to_decorated[dst])
+
+        boardgraph.draw(path=logfile, format='svg', prog='neato')
+        
+        
     # add_agent :: Agent -> IO ()
     def add_agent(self, a):
         prefnames = a.preferred_ids(len(self.agents))
@@ -75,6 +105,7 @@ class Simulation:
             places = a.pregame_place(numarmies, self)
             self.process_placements(a, numarmies, places)
 
+        roundnum = 0
         while not self.is_ended():
             # Begin game
             for a in self.agents:
@@ -86,6 +117,9 @@ class Simulation:
                 self.process_attacks(a)
                 self.process_transfers(a)
             if self.debug:
+                self.log_image(roundnum)
+                roundnum = roundnum + 1
+
                 print "------------"
                 for agent in self.agents:
                     print "----%s" % agent
