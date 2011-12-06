@@ -38,13 +38,13 @@ class Simulation:
             for territory in territories:
                 agentfloat = float(self.agents.index(self.countries[territory]))
                 hue        = agentfloat / len(self.agents)
-                sat        = 0.5
-                val        = 0.5
+                sat        = 0.4
+                val        = 0.75
                 colorstring = "%f,%f,%f" % (hue, sat, val)
 
-                decorated = territory                           \
-                            + " %d" % self.armies[territory]    \
-                            + " %s" % self.countries[territory] 
+                decorated = "%s %d\\n%s" % (territory,
+                                          self.armies[territory],
+                                          self.countries[territory])
                 base_to_decorated[territory] = decorated
 
                 boardgraph.add_node(base_to_decorated[territory],
