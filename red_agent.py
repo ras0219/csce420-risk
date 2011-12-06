@@ -4,8 +4,9 @@ import mathmodel
 from itertools import ifilter
 
 class RedAgent(agent.Agent):
-    def __init__(self, minctw=0.7):
+    def __init__(self, minctw=0.7, debug=False):
         self.minctw = minctw
+        self.debug = debug
         self.terraset = set()
 
     def preferred_ids(self, num):
@@ -75,14 +76,12 @@ class RedAgent(agent.Agent):
                 dist_to_edge += 1
             self.terraset = set(sim.owns[self])
             self.unactivated = self.terraset.copy()
-#            print self.tree
 
         owned = sorted(self.unactivated, key=lambda c: self.tree[c], reverse=True)
         while len(owned) > 0:
             c = owned.pop()
             if self.tree[c] == 0:
                 continue
-#            print owned, c
             if sim.armies[c] > 1:
                 # find the gradient
                 for k in sim.edgelist[c]:
